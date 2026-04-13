@@ -3,125 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nutrition Tracker | Phase 1</title>
+    <title>Palaash | Elite Nutrition Tracker</title>
     <style>
-        :root { --bg: #ffffff; --text: #1a1a1a; --border: #e1e1e1; --accent: #2ecc71; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica; background: #f9f9f9; color: var(--text); line-height: 1.6; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        :root { --bg: #000000; --card: #111111; --text: #ffffff; --border: #333333; --accent: #00ff41; --danger: #ff4141; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; font-weight: 300; }
+        .container { max-width: 500px; margin: auto; }
         
-        h2 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--text); padding-bottom: 10px; margin-bottom: 20px; }
+        /* Header & Progress */
+        header { margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        h1 { font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; color: #888; }
+        .progress-container { margin-bottom: 15px; }
+        .label-row { display: flex; justify-content: space-between; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; }
+        .bar-bg { background: #222; height: 8px; border-radius: 4px; overflow: hidden; }
+        .bar-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; }
         
-        .section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; color: #666; }
-        
-        select, input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #f1f1f1; padding: 15px; border-radius: 4px; text-align: center; }
-        .stat-val { font-size: 1.5rem; font-weight: bold; display: block; }
-        .stat-label { font-size: 0.7rem; color: #666; text-transform: uppercase; }
+        /* Meal Sections */
+        .meal-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .meal-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .meal-total { font-size: 0.8rem; color: var(--accent); }
 
-        button { width: 100%; padding: 15px; background: var(--text); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-        button:hover { opacity: 0.9; }
-        
-        .entry-log { font-size: 0.9rem; }
-        .entry-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+        /* Search & Input */
+        .search-container { position: relative; margin-bottom: 15px; }
+        input[type="text"] { width: 100%; background: #000; border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; box-sizing: border-box; }
+        .results-box { position: absolute; top: 100%; left: 0; right: 0; background: #222; border: 1px solid var(--border); z-index: 10; display: none; max-height: 200px; overflow-y: auto; }
+        .result-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; font-size: 0.9rem; }
+        .result-item:hover { background: #333; }
+
+        /* Logged Items */
+        .logged-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; font-size: 0.9rem; }
+        .item-meta { color: #666; font-size: 0.75rem; }
+        .remove-btn { color: var(--danger); cursor: pointer; padding: 5px; }
+
+        /* Footer Action */
+        .sync-footer { position: sticky; bottom: 20px; }
+        .sync-btn { background: var(--accent); color: #000; font-weight: 700; border: none; padding: 18px; border-radius: 8px; width: 100%; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Daily Calorie Intake</h2>
+    <header>
+        <h1>Daily Fuel Status</h1>
+        <div class="progress-container">
+            <div class="label-row"><span>Calories</span><span id="calText">0 / 2500</span></div>
+            <div class="bar-bg"><div id="calBar" class="bar-fill"></div></div>
+        </div>
+        <div class="progress-container">
+            <div class="label-row"><span>Protein (g)</span><span id="proText">0 / 160</span></div>
+            <div class="bar-bg"><div id="proBar" class="bar-fill" style="background: #419cff;"></div></div>
+        </div>
+    </header>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-val" id="totalDisplay">0</span>
-            <span class="stat-label">Total kcal</span>
+    <div class="meal-card" id="section-Breakfast">
+        <div class="meal-header">BREAKFAST <span class="meal-total" id="total-Breakfast">0 kcal</span></div>
+        <div class="search-container">
+            <input type="text" placeholder="Add anything (Almonds, Milk...)" onkeyup="searchFood(this, 'Breakfast')">
+            <div class="results-box"></div>
         </div>
-        <div class="stat-card">
-            <span class="stat-val" id="itemCount">0</span>
-            <span class="stat-label">Items Logged</span>
-        </div>
+        <div class="logged-list"></div>
     </div>
 
-    <div class="section">
-        <label>Meal Period</label>
-        <select id="mealPeriod">
-            <option>Breakfast</option>
-            <option>Lunch</option>
-            <option>Dinner</option>
-            <option>Extra/Snack</option>
-        </select>
-
-        <label>Select Dish</label>
-        <select id="foodItem"></select>
-
-        <label>Quantity (Units/Bowls)</label>
-        <input type="number" id="qty" value="1" step="0.5">
-
-        <button onclick="addEntry()">Add to Daily Log</button>
+    <div class="meal-card" id="section-Lunch">
+        <div class="meal-header">LUNCH <span class="meal-total" id="total-Lunch">0 kcal</span></div>
+        <div class="search-container">
+            <input type="text" placeholder="Add lunch items..." onkeyup="searchFood(this, 'Lunch')">
+            <div class="results-box"></div>
+        </div>
+        <div class="logged-list"></div>
     </div>
 
-    <div class="entry-log" id="logResults">
-        <label>Logged Today</label>
+    <div class="meal-card" id="section-Dinner">
+        <div class="meal-header">DINNER <span class="meal-total" id="total-Dinner">0 kcal</span></div>
+        <div class="search-container">
+            <input type="text" placeholder="Add dinner items..." onkeyup="searchFood(this, 'Dinner')">
+            <div class="results-box"></div>
         </div>
+        <div class="logged-list"></div>
+    </div>
+
+    <div class="sync-footer">
+        <button class="sync-btn" onclick="syncToCloud()">Sync Today's Data</button>
+    </div>
 </div>
 
 <script>
-    let mealDB = [];
-    let currentLog = [];
+    // Test Data - This will eventually move to your meals.json
+    const mealDB = [
+        { name: "Almonds", cals: 7, pro: 0.25, unit: "piece" },
+        { name: "Milk (Full Cream)", cals: 150, pro: 8, unit: "cup" },
+        { name: "Buttermilk", cals: 40, pro: 2, unit: "glass" },
+        { name: "Whey Isolate", cals: 120, pro: 25, unit: "scoop" },
+        { name: "Bhindi ki Sabji", cals: 120, pro: 3, unit: "katori" },
+        { name: "Rotli (No Ghee)", cals: 110, pro: 3, unit: "piece" },
+        { name: "Tuvar Dal", cals: 140, pro: 7, unit: "katori" },
+        { name: "Basmati Rice", cals: 130, pro: 2, unit: "katori" },
+        { name: "Thepla", cals: 155, pro: 4, unit: "piece" }
+    ];
 
-    // Fetch your recipes
-    fetch('meals.json')
-        .then(res => res.json())
-        .then(data => {
-            mealDB = data.database;
-            const select = document.getElementById('foodItem');
-            mealDB.forEach(item => {
-                let opt = document.createElement('option');
-                opt.value = item.name;
-                opt.innerHTML = `${item.name} (${item.calories} / ${item.unit})`;
-                select.appendChild(opt);
-            });
+    let dailyLog = {
+        date: new Date().toISOString().split('T')[0],
+        Breakfast: [],
+        Lunch: [],
+        Dinner: []
+    };
+
+    function searchFood(input, mealType) {
+        const query = input.value.toLowerCase();
+        const resultsBox = input.nextElementSibling;
+        resultsBox.innerHTML = '';
+        
+        if (query.length < 1) { resultsBox.style.display = 'none'; return; }
+
+        const filtered = mealDB.filter(f => f.name.toLowerCase().includes(query));
+        filtered.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'result-item';
+            div.innerHTML = `${item.name} <span style="float:right; color:#666">${item.cals} cal</span>`;
+            div.onclick = () => addItem(item, mealType, input);
+            resultsBox.appendChild(div);
         });
+        resultsBox.style.display = 'block';
+    }
 
-    function addEntry() {
-        const foodName = document.getElementById('foodItem').value;
-        const period = document.getElementById('mealPeriod').value;
-        const qty = parseFloat(document.getElementById('qty').value);
-        const foodData = mealDB.find(f => f.name === foodName);
+    function addItem(item, mealType, input) {
+        const qty = prompt(`How many ${item.unit}s?`, "1");
+        if (qty === null) return;
 
         const entry = {
-            period,
-            name: foodName,
-            qty,
-            cals: Math.round(foodData.calories * qty)
+            ...item,
+            qty: parseFloat(qty),
+            totalCals: Math.round(item.cals * parseFloat(qty)),
+            totalPro: Math.round(item.pro * parseFloat(qty))
         };
 
-        currentLog.push(entry);
-        updateUI();
+        dailyLog[mealType].push(entry);
+        input.value = '';
+        input.nextElementSibling.style.display = 'none';
+        renderUI();
     }
 
-    function updateUI() {
-        const logDiv = document.getElementById('logResults');
-        const totalDisp = document.getElementById('totalDisplay');
-        const countDisp = document.getElementById('itemCount');
-        
-        let total = 0;
-        logDiv.innerHTML = '<label>Logged Today</label>';
-        
-        currentLog.forEach(e => {
-            total += e.cals;
-            logDiv.innerHTML += `
-                <div class="entry-row">
-                    <span><strong>${e.period}</strong>: ${e.name} (x${e.qty})</span>
-                    <span>${e.cals} kcal</span>
-                </div>`;
+    function renderUI() {
+        let grandTotalCals = 0;
+        let grandTotalPro = 0;
+
+        ["Breakfast", "Lunch", "Dinner"].forEach(type => {
+            const container = document.querySelector(`#section-${type} .logged-list`);
+            const totalLabel = document.getElementById(`total-${type}`);
+            let sectionCals = 0;
+            
+            container.innerHTML = '';
+            dailyLog[type].forEach((item, index) => {
+                sectionCals += item.totalCals;
+                grandTotalCals += item.totalCals;
+                grandTotalPro += item.totalPro;
+
+                container.innerHTML += `
+                    <div class="logged-item">
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            <span class="item-meta">${item.qty} ${item.unit} | ${item.totalPro}g Protein</span>
+                        </div>
+                        <div>
+                            <span>${item.totalCals} kcal</span>
+                            <span class="remove-btn" onclick="removeItem('${type}', ${index})">✕</span>
+                        </div>
+                    </div>`;
+            });
+            totalLabel.innerText = `${sectionCals} kcal`;
         });
 
-        totalDisp.innerText = total;
-        countDisp.innerText = currentLog.length;
+        // Update Progress Bars
+        document.getElementById('calText').innerText = `${grandTotalCals} / 2500`;
+        document.getElementById('calBar').style.width = Math.min((grandTotalCals/2500)*100, 100) + '%';
+        
+        document.getElementById('proText').innerText = `${grandTotalPro} / 160`;
+        document.getElementById('proBar').style.width = Math.min((grandTotalPro/160)*100, 100) + '%';
+    }
+
+    function removeItem(type, index) {
+        dailyLog[type].splice(index, 1);
+        renderUI();
+    }
+
+    function syncToCloud() {
+        alert("JSONbin sync initiated for: " + dailyLog.date + "\nTotal: " + document.getElementById('calText').innerText);
+        // This will be replaced with the actual fetch('https://api.jsonbin.io/v3/b/...') call
     }
 </script>
+
 </body>
 </html>

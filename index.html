@@ -3,192 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palaash | Elite Nutrition Tracker</title>
+    <title>Palaash | Nutrition Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000000; --card: #111111; --text: #ffffff; --border: #333333; --accent: #00ff41; --danger: #ff4141; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; font-weight: 300; }
-        .container { max-width: 500px; margin: auto; }
+        :root { 
+            --bg: #0a0a0a; --card: #151515; --text: #ffffff; --dim: #888;
+            --accent: #00ff41; --blue: #007aff; --danger: #ff3b30; --border: #222;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         
-        /* Header & Progress */
-        header { margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
-        h1 { font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; color: #888; }
-        .progress-container { margin-bottom: 15px; }
-        .label-row { display: flex; justify-content: space-between; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; }
-        .bar-bg { background: #222; height: 8px; border-radius: 4px; overflow: hidden; }
-        .bar-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; }
-        
-        /* Meal Sections */
-        .meal-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        .meal-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .meal-total { font-size: 0.8rem; color: var(--accent); }
+        /* Layout Grid */
+        .dashboard { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+        @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; height: auto; } }
 
-        /* Search & Input */
-        .search-container { position: relative; margin-bottom: 15px; }
-        input[type="text"] { width: 100%; background: #000; border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; box-sizing: border-box; }
-        .results-box { position: absolute; top: 100%; left: 0; right: 0; background: #222; border: 1px solid var(--border); z-index: 10; display: none; max-height: 200px; overflow-y: auto; }
-        .result-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; font-size: 0.9rem; }
-        .result-item:hover { background: #333; }
+        /* Sidebar - History & Config */
+        .sidebar { background: #000; border-right: 1px solid var(--border); padding: 25px; overflow-y: auto; }
+        .sidebar h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--dim); margin-bottom: 20px; }
+        .history-item { background: var(--card); padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid var(--accent); }
+        .history-date { font-weight: 700; font-size: 0.9rem; }
+        .history-stats { font-size: 0.8rem; color: var(--dim); }
 
-        /* Logged Items */
-        .logged-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; font-size: 0.9rem; }
-        .item-meta { color: #666; font-size: 0.75rem; }
-        .remove-btn { color: var(--danger); cursor: pointer; padding: 5px; }
+        /* Main Content */
+        .main-panel { padding: 40px; overflow-y: auto; }
+        @media (max-width: 600px) { .main-panel { padding: 20px; } }
 
-        /* Footer Action */
-        .sync-footer { position: sticky; bottom: 20px; }
-        .sync-btn { background: var(--accent); color: #000; font-weight: 700; border: none; padding: 18px; border-radius: 8px; width: 100%; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        /* Header / Gauges */
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
+        .gauge-group { flex: 1; min-width: 250px; }
+        .gauge-label { display: flex; justify-content: space-between; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; font-size: 0.9rem; }
+        .gauge-bar { background: #222; height: 12px; border-radius: 6px; overflow: hidden; }
+        .gauge-fill { height: 100%; transition: width 0.5s cubic-bezier(0.1, 0, 0, 1); }
+
+        /* Meal Grid */
+        .meal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .meal-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; position: relative; }
+        .meal-card h3 { margin-top: 0; color: var(--accent); font-size: 1.2rem; display: flex; justify-content: space-between; }
+        .meal-card h3 span { color: var(--text); opacity: 0.5; font-size: 0.9rem; }
+
+        /* Inputs */
+        .search-wrap { margin: 15px 0; position: relative; }
+        input { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-family: inherit; }
+        .search-results { position: absolute; width: 100%; background: #1a1a1a; z-index: 100; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; }
+        .result-row { padding: 12px; cursor: pointer; border-bottom: 1px solid #252525; display: flex; justify-content: space-between; }
+        .result-row:hover { background: #252525; }
+
+        /* List Styling */
+        .logged-list { margin-top: 20px; }
+        .log-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 0.95rem; }
+        .log-row b { color: var(--accent); }
+        .remove-icon { color: var(--danger); cursor: pointer; padding-left: 10px; font-weight: bold; }
+
+        .sync-btn { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: #000; border: none; padding: 15px 30px; border-radius: 50px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 20px rgba(0,255,65,0.3); }
+        .sync-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Daily Fuel Status</h1>
-        <div class="progress-container">
-            <div class="label-row"><span>Calories</span><span id="calText">0 / 2500</span></div>
-            <div class="bar-bg"><div id="calBar" class="bar-fill"></div></div>
+<div class="dashboard">
+    <aside class="sidebar">
+        <h2>History Logs</h2>
+        <div id="history-container">
+            <p style="color:#444">No synced data found...</p>
         </div>
-        <div class="progress-container">
-            <div class="label-row"><span>Protein (g)</span><span id="proText">0 / 160</span></div>
-            <div class="bar-bg"><div id="proBar" class="bar-fill" style="background: #419cff;"></div></div>
-        </div>
-    </header>
+    </aside>
 
-    <div class="meal-card" id="section-Breakfast">
-        <div class="meal-header">BREAKFAST <span class="meal-total" id="total-Breakfast">0 kcal</span></div>
-        <div class="search-container">
-            <input type="text" placeholder="Add anything (Almonds, Milk...)" onkeyup="searchFood(this, 'Breakfast')">
-            <div class="results-box"></div>
+    <main class="main-panel">
+        <div class="header">
+            <div class="gauge-group">
+                <div class="gauge-label">Calories <span id="cal-num">0 / 2000</span></div>
+                <div class="gauge-bar"><div id="cal-fill" class="gauge-fill" style="background: var(--accent); width: 0%;"></div></div>
+            </div>
+            <div class="gauge-group">
+                <div class="gauge-label">Protein (G) <span id="pro-num">0 / 160</span></div>
+                <div class="gauge-bar"><div id="pro-fill" class="gauge-fill" style="background: var(--blue); width: 0%;"></div></div>
+            </div>
         </div>
-        <div class="logged-list"></div>
-    </div>
 
-    <div class="meal-card" id="section-Lunch">
-        <div class="meal-header">LUNCH <span class="meal-total" id="total-Lunch">0 kcal</span></div>
-        <div class="search-container">
-            <input type="text" placeholder="Add lunch items..." onkeyup="searchFood(this, 'Lunch')">
-            <div class="results-box"></div>
+        <div class="meal-grid">
+            <div class="meal-card">
+                <h3>BREAKFAST <span id="total-Breakfast">0 kcal</span></h3>
+                <div class="search-wrap">
+                    <input type="text" placeholder="Search dish..." onkeyup="handleSearch(this, 'Breakfast')">
+                    <div class="search-results"></div>
+                </div>
+                <div id="list-Breakfast" class="logged-list"></div>
+            </div>
+
+            <div class="meal-card">
+                <h3>LUNCH <span id="total-Lunch">0 kcal</span></h3>
+                <div class="search-wrap">
+                    <input type="text" placeholder="Search dish..." onkeyup="handleSearch(this, 'Lunch')">
+                    <div class="search-results"></div>
+                </div>
+                <div id="list-Lunch" class="logged-list"></div>
+            </div>
+
+            <div class="meal-card">
+                <h3>DINNER <span id="total-Dinner">0 kcal</span></h3>
+                <div class="search-wrap">
+                    <input type="text" placeholder="Search dish..." onkeyup="handleSearch(this, 'Dinner')">
+                    <div class="search-results"></div>
+                </div>
+                <div id="list-Dinner" class="logged-list"></div>
+            </div>
         </div>
-        <div class="logged-list"></div>
-    </div>
-
-    <div class="meal-card" id="section-Dinner">
-        <div class="meal-header">DINNER <span class="meal-total" id="total-Dinner">0 kcal</span></div>
-        <div class="search-container">
-            <input type="text" placeholder="Add dinner items..." onkeyup="searchFood(this, 'Dinner')">
-            <div class="results-box"></div>
-        </div>
-        <div class="logged-list"></div>
-    </div>
-
-    <div class="sync-footer">
-        <button class="sync-btn" onclick="syncToCloud()">Sync Today's Data</button>
-    </div>
+    </main>
 </div>
 
+<button class="sync-btn" onclick="syncData()">SYNC TO CLOUD</button>
+
 <script>
-    // Test Data - This will eventually move to your meals.json
+    // HARDCODE YOUR KEYS HERE
+    const BIN_ID = "YOUR_BIN_ID_HERE"; 
+    const API_KEY = "YOUR_MASTER_KEY_HERE"; 
+
+    // Test Database - Will expand as you provide more
     const mealDB = [
-        { name: "Almonds", cals: 7, pro: 0.25, unit: "piece" },
-        { name: "Milk (Full Cream)", cals: 150, pro: 8, unit: "cup" },
-        { name: "Buttermilk", cals: 40, pro: 2, unit: "glass" },
-        { name: "Whey Isolate", cals: 120, pro: 25, unit: "scoop" },
-        { name: "Bhindi ki Sabji", cals: 120, pro: 3, unit: "katori" },
+        { name: "Rotli (Ghee)", cals: 135, pro: 3, unit: "piece" },
         { name: "Rotli (No Ghee)", cals: 110, pro: 3, unit: "piece" },
-        { name: "Tuvar Dal", cals: 140, pro: 7, unit: "katori" },
-        { name: "Basmati Rice", cals: 130, pro: 2, unit: "katori" },
-        { name: "Thepla", cals: 155, pro: 4, unit: "piece" }
+        { name: "Bhindi ki Sabji", cals: 140, pro: 2, unit: "katori" },
+        { name: "Tuvar Dal", cals: 150, pro: 7, unit: "katori" },
+        { name: "Whey Isolate", cals: 120, pro: 25, unit: "scoop" },
+        { name: "Milk (Full Cream)", cals: 150, pro: 8, unit: "cup" },
+        { name: "Almonds", cals: 7, pro: 0.3, unit: "piece" },
+        { name: "Basmati Rice", cals: 130, pro: 3, unit: "katori" },
+        { name: "Thepla", cals: 160, pro: 4, unit: "piece" },
+        { name: "Buttermilk", cals: 45, pro: 2, unit: "glass" },
+        { name: "Khaman Dhokla", cals: 80, pro: 3, unit: "piece" },
+        { name: "Sev Tameta", cals: 180, pro: 4, unit: "katori" }
     ];
 
-    let dailyLog = {
-        date: new Date().toISOString().split('T')[0],
-        Breakfast: [],
-        Lunch: [],
-        Dinner: []
-    };
+    let fullHistory = [];
+    let today = { date: new Date().toLocaleDateString(), Breakfast: [], Lunch: [], Dinner: [] };
 
-    function searchFood(input, mealType) {
-        const query = input.value.toLowerCase();
-        const resultsBox = input.nextElementSibling;
-        resultsBox.innerHTML = '';
-        
-        if (query.length < 1) { resultsBox.style.display = 'none'; return; }
-
-        const filtered = mealDB.filter(f => f.name.toLowerCase().includes(query));
-        filtered.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'result-item';
-            div.innerHTML = `${item.name} <span style="float:right; color:#666">${item.cals} cal</span>`;
-            div.onclick = () => addItem(item, mealType, input);
-            resultsBox.appendChild(div);
-        });
-        resultsBox.style.display = 'block';
+    async function init() {
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: { "X-Master-Key": API_KEY }
+            });
+            const data = await res.json();
+            fullHistory = data.record.history || [];
+            
+            // Check if today already exists in history
+            const existingToday = fullHistory.find(h => h.date === today.date);
+            if(existingToday) today = JSON.parse(JSON.stringify(existingToday));
+            
+            renderHistory();
+            renderUI();
+        } catch (e) { console.error("Could not load data from JSONbin"); }
     }
 
-    function addItem(item, mealType, input) {
-        const qty = prompt(`How many ${item.unit}s?`, "1");
-        if (qty === null) return;
+    function handleSearch(el, mealType) {
+        const query = el.value.toLowerCase();
+        const results = el.nextElementSibling;
+        results.innerHTML = '';
+        if(query.length < 1) { results.style.display = 'none'; return; }
 
-        const entry = {
-            ...item,
-            qty: parseFloat(qty),
-            totalCals: Math.round(item.cals * parseFloat(qty)),
-            totalPro: Math.round(item.pro * parseFloat(qty))
-        };
-
-        dailyLog[mealType].push(entry);
-        input.value = '';
-        input.nextElementSibling.style.display = 'none';
-        renderUI();
+        mealDB.filter(f => f.name.toLowerCase().includes(query)).forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'result-row';
+            row.innerHTML = `<span>${item.name}</span> <span style="color:var(--dim)">${item.cals} cal</span>`;
+            row.onclick = () => {
+                const qty = prompt(`Quantity in ${item.unit}s?`, "1");
+                if(qty) {
+                    today[mealType].push({...item, qty: parseFloat(qty), totalCals: Math.round(item.cals * qty), totalPro: Math.round(item.pro * qty)});
+                    el.value = '';
+                    results.style.display = 'none';
+                    renderUI();
+                }
+            };
+            results.appendChild(row);
+        });
+        results.style.display = 'block';
     }
 
     function renderUI() {
-        let grandTotalCals = 0;
-        let grandTotalPro = 0;
+        let grandCals = 0;
+        let grandPro = 0;
 
-        ["Breakfast", "Lunch", "Dinner"].forEach(type => {
-            const container = document.querySelector(`#section-${type} .logged-list`);
-            const totalLabel = document.getElementById(`total-${type}`);
+        ["Breakfast", "Lunch", "Dinner"].forEach(m => {
+            const list = document.getElementById(`list-${m}`);
+            const total = document.getElementById(`total-${m}`);
             let sectionCals = 0;
+            list.innerHTML = '';
             
-            container.innerHTML = '';
-            dailyLog[type].forEach((item, index) => {
+            today[m].forEach((item, i) => {
                 sectionCals += item.totalCals;
-                grandTotalCals += item.totalCals;
-                grandTotalPro += item.totalPro;
-
-                container.innerHTML += `
-                    <div class="logged-item">
-                        <div>
-                            <strong>${item.name}</strong><br>
-                            <span class="item-meta">${item.qty} ${item.unit} | ${item.totalPro}g Protein</span>
-                        </div>
-                        <div>
-                            <span>${item.totalCals} kcal</span>
-                            <span class="remove-btn" onclick="removeItem('${type}', ${index})">✕</span>
-                        </div>
-                    </div>`;
+                grandCals += item.totalCals;
+                grandPro += item.totalPro;
+                list.innerHTML += `<div class="log-row">
+                    <span>${item.name} (x${item.qty})</span>
+                    <span><b>${item.totalCals}</b><span class="remove-icon" onclick="removeLine('${m}', ${i})">✕</span></span>
+                </div>`;
             });
-            totalLabel.innerText = `${sectionCals} kcal`;
+            total.innerText = `${sectionCals} kcal`;
         });
 
-        // Update Progress Bars
-        document.getElementById('calText').innerText = `${grandTotalCals} / 2500`;
-        document.getElementById('calBar').style.width = Math.min((grandTotalCals/2500)*100, 100) + '%';
-        
-        document.getElementById('proText').innerText = `${grandTotalPro} / 160`;
-        document.getElementById('proBar').style.width = Math.min((grandTotalPro/160)*100, 100) + '%';
+        document.getElementById('cal-num').innerText = `${grandCals} / 2000`;
+        document.getElementById('pro-num').innerText = `${grandPro} / 160`;
+        document.getElementById('cal-fill').style.width = Math.min((grandCals/2000)*100, 100) + '%';
+        document.getElementById('pro-fill').style.width = Math.min((grandPro/160)*100, 100) + '%';
     }
 
-    function removeItem(type, index) {
-        dailyLog[type].splice(index, 1);
+    function removeLine(meal, index) {
+        today[meal].splice(index, 1);
         renderUI();
     }
 
-    function syncToCloud() {
-        alert("JSONbin sync initiated for: " + dailyLog.date + "\nTotal: " + document.getElementById('calText').innerText);
-        // This will be replaced with the actual fetch('https://api.jsonbin.io/v3/b/...') call
+    function renderHistory() {
+        const cont = document.getElementById('history-container');
+        cont.innerHTML = '';
+        fullHistory.slice().reverse().forEach(h => {
+            let dayTotal = 0;
+            ["Breakfast", "Lunch", "Dinner"].forEach(m => h[m].forEach(i => dayTotal += i.totalCals));
+            cont.innerHTML += `<div class="history-item">
+                <div class="history-date">${h.date}</div>
+                <div class="history-stats">${dayTotal} kcal | ${h.Breakfast.length + h.Lunch.length + h.Dinner.length} items</div>
+            </div>`;
+        });
     }
+
+    async function syncData() {
+        const btn = document.querySelector('.sync-btn');
+        btn.innerText = "SAVING...";
+        
+        const index = fullHistory.findIndex(h => h.date === today.date);
+        if(index > -1) fullHistory[index] = today;
+        else fullHistory.push(today);
+
+        try {
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT',
+                headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
+                body: JSON.stringify({ history: fullHistory, settings: {goal: 2000, proGoal: 160} })
+            });
+            btn.innerText = "SYNC COMPLETE";
+            setTimeout(() => btn.innerText = "SYNC TO CLOUD", 2000);
+            renderHistory();
+        } catch (e) { alert("Sync failed."); }
+    }
+
+    init();
 </script>
 
 </body>
